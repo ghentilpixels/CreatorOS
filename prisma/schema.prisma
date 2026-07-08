@@ -1,0 +1,166 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+model User {
+  id        String     @id @default(uuid())
+  email     String     @unique
+  name      String?
+  avatarUrl String?
+  projects  Project[]
+  researches Research[]
+  agentConfigs AgentConfig[]
+  workflows    Workflow[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Project {
+  id              String   @id @default(uuid())
+  title           String
+  description     String?
+  category        String?
+  platform        String?
+  targetAudience  String?
+  status          String   @default("draft") // draft, active, archived
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  videos          Video[]
+  ideas           Idea[]
+  scripts         Script[]
+  thumbnails      Thumbnail[]
+  seoAssets       SEOAsset[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+model Video {
+  id            String    @id @default(uuid())
+  title         String
+  description   String?
+  status        String    @default("ideas") // ideas, researching, writing, recording, editing, scheduled, published
+  platform      String?
+  thumbnail     String?
+  script        String?   @db.Text
+  publishedDate DateTime?
+  views         Int       @default(0)
+  ctr           Float     @default(0)
+  watchTime     Int       @default(0) // in minutes
+  projectId     String
+  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks         Task[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Idea {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  status      String   @default("new") // new, researching, approved, archived
+  platform    String?
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Task {
+  id        String   @id @default(uuid())
+  title     String
+  isDone    Boolean  @default(false)
+  videoId   String?
+  video     Video?   @relation(fields: [videoId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Research {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic     String
+  summary   String?  @db.Text
+  keywords  Json?
+  ideas     Json?
+  createdAt DateTime @default(now())
+}
+
+model Script {
+  id        String   @id @default(uuid())
+  title     String
+  hook      String?  @db.Text
+  content   String   @db.Text
+  style     String?
+  status    String   @default("draft") // draft, generated, completed
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Thumbnail {
+  id          String   @id @default(uuid())
+  concept     String   @db.Text
+  headline    String
+  emotion     String?
+  composition String?  @db.Text
+  objects     String?  @db.Text
+  prompt      String   @db.Text
+  tips        Json?
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model SEOAsset {
+  id            String   @id @default(uuid())
+  title         String
+  description   String   @db.Text
+  tags          Json?
+  keywords      Json?
+  hashtags      Json?
+  pinnedComment String?  @db.Text
+  communityPost String?  @db.Text
+  projectId     String?
+  project       Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model AgentConfig {
+  id           String   @id @default(uuid())
+  name         String
+  type         String   // "research", "script", "seo", etc.
+  status       String   @default("active") // active, inactive
+  model        String   @default("gpt-4o")
+  provider     String   @default("openai")
+  temperature  Float    @default(0.7)
+  instructions String?  @db.Text
+  lastRun      DateTime?
+  usage        Int      @default(0)
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Workflow {
+  id          String   @id @default(uuid())
+  name        String
+  trigger     String   // e.g., "manual", "new_topic"
+  steps       Json     // Array of agent types or step configurations
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
