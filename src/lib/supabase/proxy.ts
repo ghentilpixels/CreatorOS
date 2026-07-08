@@ -35,7 +35,13 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  await supabase.auth.getUser();
+  try {
+    await supabase.auth.getUser();
+  } catch (err) {
+    // If Supabase client fails, return the current response to continue the request.
+    console.error("supabase updateSession error:", err);
+    return response;
+  }
 
-  return Response;
+  return response;
 }
