@@ -1,35 +1,48 @@
 "use client";
 
-import { Moon, Sun, Monitor } from "lucide-react";
+import { Monitor, Sun, Moon } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export function AppearanceSettings() {
   return (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-medium text-white">Appearance</h3>
-        <p className="text-sm text-zinc-400">
-          Customize how CreatorOS looks on your device.
-        </p>
-      </div>
-
-      <div className="h-px bg-white/10" />
-
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <button className="flex flex-col items-center justify-center p-6 rounded-xl border-2 border-purple-500 bg-white/5 hover:bg-white/10 transition-colors">
-            <Monitor className="h-8 w-8 text-white mb-3" />
-            <span className="text-sm font-medium text-white">System</span>
-          </button>
-          <button className="flex flex-col items-center justify-center p-6 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors">
-            <Sun className="h-8 w-8 text-zinc-400 mb-3" />
-            <span className="text-sm font-medium text-zinc-300">Light</span>
-          </button>
-          <button className="flex flex-col items-center justify-center p-6 rounded-xl border border-white/10 bg-black/50 hover:bg-black/80 transition-colors">
-            <Moon className="h-8 w-8 text-zinc-400 mb-3" />
-            <span className="text-sm font-medium text-zinc-300">Dark</span>
-          </button>
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-white">Appearance</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <p className="text-sm text-zinc-400 -mt-2">
+            Customize how CreatorOS looks on your device.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Button
+              type="button"
+              variant="outline"
+              className="flex flex-col items-center justify-center p-6 h-auto gap-3 border-purple-500 bg-white/5"
+            >
+              <Monitor className="h-8 w-8 text-white" />
+              <span className="text-sm font-medium text-white">System</span>
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="flex flex-col items-center justify-center p-6 h-auto gap-3"
+            >
+              <Sun className="h-8 w-8 text-zinc-400" />
+              <span className="text-sm font-medium text-zinc-300">Light</span>
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="flex flex-col items-center justify-center p-6 h-auto gap-3"
+            >
+              <Moon className="h-8 w-8 text-zinc-400" />
+              <span className="text-sm font-medium text-zinc-300">Dark</span>
+            </Button>
+          </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
