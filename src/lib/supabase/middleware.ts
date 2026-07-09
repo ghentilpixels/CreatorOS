@@ -2,40 +2,33 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function updateSession(request: NextRequest) {
-  let response = NextResponse.next({
+  const response = NextResponse.next({
     request,
   });
 
   const SUPABASE_URL =
     process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    "https://htyartykjwqxvgdhoosq.supabase.co";
-  const SUPABASE_ANON_KEY =
+    "https://placeholder.supabase.co";
+  const SUPABASE_PUBLISHABLE_KEY =
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    "sb_publishable_9S8bhnAoaCs1DXCO93jSnA_zIqYoTER";
+    "placeholder-key";
 
-  const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  const supabase = createServerClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     cookies: {
       getAll() {
         return request.cookies.getAll();
       },
 
       setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value }) =>
-          request.cookies.set(name, value),
-        );
-
-        response = NextResponse.next({
-          request,
+        cookiesToSet.forEach(({ name, value, options }) => {
+          response.cookies.set(name, value, options);
         });
-
-        cookiesToSet.forEach(({ name, value, options }) =>
-          response.cookies.set(name, value, options),
-        );
       },
     },
   });
 
   await supabase.auth.getUser();
 
-  return Response;
+  return response;
 }

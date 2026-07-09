@@ -34,7 +34,7 @@ export async function saveThumbnail(data: {
         composition: data.composition,
         objects: data.objects,
         prompt: data.prompt,
-        tips: data.tips ? JSON.stringify(data.tips) : null,
+        tips: data.tips ? JSON.parse(JSON.stringify(data.tips)) : undefined,
         projectId: data.projectId || null,
       }
     });

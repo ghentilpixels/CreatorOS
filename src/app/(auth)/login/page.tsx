@@ -1,5 +1,6 @@
 "use client";
 
+import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { PlaySquare, Mail, Lock, ArrowRight } from "lucide-react";
@@ -10,15 +11,49 @@ import Link from "next/link";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleOAuthSignIn = async (provider: "google" | "github") => {
+    try {
+      const supabase = createClient();
+      await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "OAuth sign-in failed");
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     setIsLoading(true);
-    // Mock login delay
-    setTimeout(() => {
-      setIsLoading(false);
+
+    try {
+      const formData = new FormData(e.target as HTMLFormElement);
+      const email = formData.get("email") as string;
+      const password = formData.get("password") as string;
+
+      const { createClient } = await import("@/lib/supabase/client");
+      const { error } = await createClient().auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        setError(error.message);
+        setIsLoading(false);
+        return;
+      }
+
       window.location.href = "/";
-    }, 1500);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Sign-in failed");
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -67,6 +102,12 @@ export default function LoginPage() {
               <h1 className="text-3xl font-bold tracking-tight text-white mb-2">Welcome Back</h1>
               <p className="text-zinc-400">Sign in to continue to your workspace.</p>
             </div>
+
+            {error && (
+              <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                {error}
+              </div>
+            )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
@@ -123,14 +164,14 @@ export default function LoginPage() {
             </div>
 
             <div className="mt-6 grid grid-cols-2 gap-4">
-              <Button variant="outline" className="h-12 bg-transparent border-white/10 hover:bg-white/5 text-zinc-300 rounded-xl transition-all">
+              <Button variant="outline" className="h-12 bg-transparent border-white/10 hover:bg-white/5 text-zinc-300 rounded-xl transition-all" onClick={() => handleOAuthSignIn("github")}>
                 <svg viewBox="0 0 24 24" className="w-5 h-5 mr-2" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.24c3-.34 6-1.53 6-6.76a5.5 5.5 0 0 0-1.5-3.8 5.1 5.1 0 0 0-.1-3.8s-1.2-.4-3.9 1.4a13.3 13.3 0 0 0-7 0c-2.7-1.8-3.9-1.4-3.9-1.4a5.1 5.1 0 0 0-.1 3.8A5.5 5.5 0 0 0 2 8.5c0 5.23 3 6.42 6 6.76A4.8 4.8 0 0 0 7 18.5v3.5" />
                   <path d="M9 19c-4.3 1.4-5.3-2-6-2" />
                 </svg>
                 Github
               </Button>
-              <Button variant="outline" className="h-12 bg-transparent border-white/10 hover:bg-white/5 text-zinc-300 rounded-xl transition-all">
+              <Button variant="outline" className="h-12 bg-transparent border-white/10 hover:bg-white/5 text-zinc-300 rounded-xl transition-all" onClick={() => handleOAuthSignIn("google")}>
                 <svg viewBox="0 0 24 24" className="w-5 h-5 mr-2" fill="currentColor">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
                   <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />

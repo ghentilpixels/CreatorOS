@@ -41,7 +41,7 @@ export interface AgentInterface {
   /**
    * Logs execution details and usage.
    */
-  log(details: any): Promise<void>;
+  log(details: any): Promise<any>;
 }
 
 export abstract class BaseAgent implements AgentInterface {
@@ -66,7 +66,7 @@ export abstract class BaseAgent implements AgentInterface {
     return output;
   }
 
-  async log(details: AgentContext & ExecutionResult): Promise<void> {
+  async log(details: AgentContext & ExecutionResult): Promise<any> {
     try {
       if (details.configId && details.userId) {
         const logEntry = await this.prisma.agentLog.create({

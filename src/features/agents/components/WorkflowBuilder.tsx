@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Plus, X, Save, Play, ZapOff, Code2, GitBranch } from "lucide-react";
 import { motion } from "framer-motion";
 
-interface WorkflowStep {
+export interface WorkflowStep {
   id: string;
   agentType: string;
   agentName: string;

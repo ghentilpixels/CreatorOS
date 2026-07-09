@@ -1,8 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,19 +9,132 @@ datasource db {
   provider  = "postgresql"
 }
 
+// ============================================================
+// AUTH & USERS
+// ============================================================
+
 model User {
-  id        String     @id @default(uuid())
-  email     String     @unique
+  id        String   @id @default(uuid())
+  email     String   @unique
   name      String?
   avatarUrl String?
-  projects  Project[]
-  researches Research[]
+
+  // SaaS / workspace membership
+  ownedWorkspaces Workspace[]      @relation("WorkspaceOwner")
+  memberships     WorkspaceMember[]
+
+  // Legacy features (scoped to user until workspace migration is complete)
+  projects     Project[]
+  researches   Research[]
   agentConfigs AgentConfig[]
   workflows    Workflow[]
-  workflowRuns WorkflowRun[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
+
+// ============================================================
+// WORKSPACES & RBAC
+// ============================================================
+
+model Workspace {
+  id          String  @id @default(uuid())
+  name        String
+  slug        String  @unique
+  description String?
+
+  ownerId String
+  owner   User   @relation("WorkspaceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  members       WorkspaceMember[]
+  subscription  Subscription?
+  usage         UsageQuota[]
+  projects      Project[]
+  integrations  Integration[]
+  publishingPosts PublishingPost[]
+  analytics     AnalyticsMetric[]
+
+  plan String @default("free") // free, starter, pro, team
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId])
+  @@index([plan])
+}
+
+model WorkspaceMember {
+  id     String @id @default(uuid())
+  role   String @default("editor") // owner, admin, editor, viewer
+  status String @default("active") // active, invited, suspended
+
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  invitedEmail String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([workspaceId, userId])
+  @@unique([workspaceId, invitedEmail])
+  @@index([workspaceId])
+  @@index([userId])
+}
+
+// ============================================================
+// SUBSCRIPTIONS & BILLING
+// ============================================================
+
+model Subscription {
+  id     String @id @default(uuid())
+  status String @default("active") // active, trialing, past_due, canceled, paused
+
+  workspaceId String  @unique
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  plan String @default("free")
+
+  seats               Int       @default(1)
+  currentPeriodStart  DateTime?
+  currentPeriodEnd    DateTime?
+  cancelAtPeriodEnd   Boolean   @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workspaceId])
+}
+
+model UsageQuota {
+  id String @id @default(uuid())
+
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  periodStart DateTime
+  periodEnd   DateTime
+
+  aiGenerations   Int @default(0)
+  projects        Int @default(0)
+  videos          Int @default(0)
+  publishedPosts  Int @default(0)
+  storageMb       Int @default(0)
+  teamSeats       Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([workspaceId, periodStart])
+  @@index([workspaceId])
+}
+
+// ============================================================
+// PROJECTS & CONTENT
+// ============================================================
 
 model Project {
   id              String   @id @default(uuid())
@@ -35,15 +146,24 @@ model Project {
   status          String   @default("draft") // draft, active, archived
   userId          String
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  workspaceId String?
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+
   videos          Video[]
   ideas           Idea[]
   scripts         Script[]
   thumbnails      Thumbnail[]
   seoAssets       SEOAsset[]
   contentPackages ContentPackage[]
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workspaceId])
+  @@index([userId])
 }
+
 model Video {
   id            String    @id @default(uuid())
   title         String
@@ -56,11 +176,15 @@ model Video {
   views         Int       @default(0)
   ctr           Float     @default(0)
   watchTime     Int       @default(0) // in minutes
+  revenue       Float     @default(0)
+  engagement    Float     @default(0)
   projectId     String
   project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   tasks         Task[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  @@index([projectId])
 }
 
 model Idea {
@@ -139,10 +263,14 @@ model SEOAsset {
   updatedAt     DateTime @updatedAt
 }
 
+// ============================================================
+// AI AGENTS
+// ============================================================
+
 model AgentConfig {
   id           String   @id @default(uuid())
   name         String
-  type         String   // "research", "script", "seo", etc.
+  type         String   // "research", "script", "seo", "thumbnail", "trend", "analytics"
   status       String   @default("active") // active, inactive
   model        String   @default("gpt-4o")
   provider     String   @default("openai")
@@ -155,6 +283,8 @@ model AgentConfig {
   logs         AgentLog[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model Workflow {
@@ -171,6 +301,8 @@ model Workflow {
   runs            WorkflowRun[]
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model WorkflowRun {
@@ -216,4 +348,77 @@ model ContentPackage {
   seoAssetId  String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+// ============================================================
+// PUBLISHING & SOCIAL INTEGRATIONS
+// ============================================================
+
+model Integration {
+  id          String  @id @default(uuid())
+  platform    String  // YOUTUBE, TIKTOK, INSTAGRAM, LINKEDIN
+  status      String  @default("disconnected") // disconnected, connected, expired, error
+  accountName String?
+  accountId   String?
+  accessToken String? // encrypted at application layer before storage
+  refreshToken String?
+  expiresAt   DateTime?
+  metadata    Json?
+
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([workspaceId, platform])
+  @@index([workspaceId])
+}
+
+model PublishingPost {
+  id          String   @id @default(uuid())
+  title       String
+  description String?  @db.Text
+  mediaUrl    String?
+  status      String   @default("draft") // draft, scheduled, publishing, published, failed
+  scheduledAt DateTime?
+  publishedAt DateTime?
+
+  // selected platforms and per-platform results
+  platforms Json // { youtube: true, tiktok: false, ... }
+  results   Json? // { youtube: { postId, url, status }, ... }
+  error     String?
+
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  projectId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workspaceId])
+  @@index([status])
+}
+
+// ============================================================
+// ANALYTICS
+// ============================================================
+
+model AnalyticsMetric {
+  id       String   @id @default(uuid())
+  date     DateTime @default(now())
+  metric   String   // views, subscribers, ctr, watchTime, revenue, engagement
+  value    Float
+  platform String?  // youtube, tiktok, instagram, linkedin, combined
+  videoId  String?
+
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workspaceId, metric, date])
+  @@index([workspaceId, platform])
 }

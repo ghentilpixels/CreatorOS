@@ -15,6 +15,7 @@ import {
   BookOpen,
   Calendar,
   BarChart,
+  Share2,
   Settings,
   Sparkles,
 } from "lucide-react";
@@ -33,6 +34,7 @@ const menuItems = [
   { name: "Content Planner", href: "/content-planner", icon: Calendar },
   { name: "Research Studio", href: "/research-studio", icon: Sparkles },
   { name: "Analytics", href: "/analytics", icon: BarChart },
+  { name: "Publish", href: "/publish", icon: Share2 },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 

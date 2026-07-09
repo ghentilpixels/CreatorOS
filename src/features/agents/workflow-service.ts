@@ -160,7 +160,7 @@ export async function updateWorkflow(
       data: {
         name: updates.name || workflow.name,
         trigger: updates.trigger || workflow.trigger,
-        steps: updates.steps || workflow.steps,
+        steps: (updates.steps as any) || workflow.steps,
       },
     });
 

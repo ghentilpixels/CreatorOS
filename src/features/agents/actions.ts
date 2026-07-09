@@ -17,7 +17,7 @@ export interface AgentLogEntry {
   status: string;
   tokensUsed: number;
   executionTime: number;
-  error?: string;
+  error?: string | null;
   createdAt: Date;
 }
 

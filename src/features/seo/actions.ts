@@ -30,9 +30,9 @@ export async function saveSeoAsset(data: {
       data: {
         title: data.title,
         description: data.description,
-        tags: data.tags ? JSON.stringify(data.tags) : null,
-        keywords: data.keywords ? JSON.stringify(data.keywords) : null,
-        hashtags: data.hashtags ? JSON.stringify(data.hashtags) : null,
+        tags: data.tags ? JSON.parse(JSON.stringify(data.tags)) : undefined,
+        keywords: data.keywords ? JSON.parse(JSON.stringify(data.keywords)) : undefined,
+        hashtags: data.hashtags ? JSON.parse(JSON.stringify(data.hashtags)) : undefined,
         pinnedComment: data.pinnedComment,
         communityPost: data.communityPost,
         projectId: data.projectId || null,

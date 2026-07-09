@@ -2,6 +2,7 @@
 
 import { Bell, Search, Menu, User as UserIcon } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
+import { WorkspaceSwitcher } from "@/features/workspaces/components/WorkspaceSwitcher";
 
 export function TopNav() {
   const user = useAuthStore((state) => state.user);
@@ -32,6 +33,7 @@ export function TopNav() {
       </div>
 
       <div className="flex items-center gap-4">
+        <WorkspaceSwitcher />
         <button className="p-2 rounded-full hover:bg-muted text-muted-foreground transition-colors relative">
           <Bell className="w-5 h-5" />
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full border-2 border-background" />
