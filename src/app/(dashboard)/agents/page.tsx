@@ -1,48 +1,137 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Bot, Settings, Play, Activity, Clock, Cpu, Zap, Plus, LayoutGrid, List } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { AgentSettingsModal } from '@/features/agents/components/AgentSettingsModal';
-import { WorkflowBuilder } from '@/features/agents/components/WorkflowBuilder';
+import { useState } from "react";
+import {
+  Bot,
+  Settings,
+  Play,
+  Activity,
+  Clock,
+  Cpu,
+  Zap,
+  Plus,
+  LayoutGrid,
+  List,
+} from "lucide-react";
+import { motion } from "framer-motion";
+import { AgentSettingsModal } from "@/features/agents/components/AgentSettingsModal";
+import { WorkflowBuilder } from "@/features/agents/components/WorkflowBuilder";
 
 const MOCK_AGENTS = [
-  { id: '1', name: 'Research Agent', type: 'research', status: 'active', model: 'gpt-4o', provider: 'openai', userId: 'user1', temperature: 0.7, instructions: '', lastRun: '10 mins ago', usage: 1200, successRate: 98 },
-  { id: '2', name: 'Script Agent', type: 'script', status: 'active', model: 'claude-3-5-sonnet-20241022', provider: 'anthropic', userId: 'user1', temperature: 0.8, instructions: '', lastRun: '1 hour ago', usage: 3400, successRate: 95 },
-  { id: '3', name: 'SEO Agent', type: 'seo', status: 'active', model: 'gpt-4o', provider: 'openai', userId: 'user1', temperature: 0.5, instructions: '', lastRun: '2 days ago', usage: 450, successRate: 100 },
-  { id: '4', name: 'Thumbnail Agent', type: 'thumbnail', status: 'inactive', model: 'gemini-1.5-pro', provider: 'google', userId: 'user1', temperature: 0.7, instructions: '', lastRun: 'Never', usage: 0, successRate: 0 },
-  { id: '5', name: 'Trend Agent', type: 'trend', status: 'active', model: 'gpt-4o-mini', provider: 'openai', userId: 'user1', temperature: 0.6, instructions: '', lastRun: '5 mins ago', usage: 120, successRate: 92 },
-  { id: '6', name: 'Analytics Agent', type: 'analytics', status: 'active', model: 'claude-3-haiku-20240307', provider: 'anthropic', userId: 'user1', temperature: 0.4, instructions: '', lastRun: '1 week ago', usage: 8900, successRate: 99 },
+  {
+    id: "1",
+    name: "Research Agent",
+    type: "research",
+    status: "active",
+    model: "gpt-4o",
+    provider: "openai",
+    userId: "user1",
+    temperature: 0.7,
+    instructions: "",
+    lastRun: "10 mins ago",
+    usage: 1200,
+    successRate: 98,
+  },
+  {
+    id: "2",
+    name: "Script Agent",
+    type: "script",
+    status: "active",
+    model: "claude-3-5-sonnet-20241022",
+    provider: "anthropic",
+    userId: "user1",
+    temperature: 0.8,
+    instructions: "",
+    lastRun: "1 hour ago",
+    usage: 3400,
+    successRate: 95,
+  },
+  {
+    id: "3",
+    name: "SEO Agent",
+    type: "seo",
+    status: "active",
+    model: "gpt-4o",
+    provider: "openai",
+    userId: "user1",
+    temperature: 0.5,
+    instructions: "",
+    lastRun: "2 days ago",
+    usage: 450,
+    successRate: 100,
+  },
+  {
+    id: "4",
+    name: "Thumbnail Agent",
+    type: "thumbnail",
+    status: "inactive",
+    model: "gemini-1.5-pro",
+    provider: "google",
+    userId: "user1",
+    temperature: 0.7,
+    instructions: "",
+    lastRun: "Never",
+    usage: 0,
+    successRate: 0,
+  },
+  {
+    id: "5",
+    name: "Trend Agent",
+    type: "trend",
+    status: "active",
+    model: "gpt-4o-mini",
+    provider: "openai",
+    userId: "user1",
+    temperature: 0.6,
+    instructions: "",
+    lastRun: "5 mins ago",
+    usage: 120,
+    successRate: 92,
+  },
+  {
+    id: "6",
+    name: "Analytics Agent",
+    type: "analytics",
+    status: "active",
+    model: "claude-3-haiku-20240307",
+    provider: "anthropic",
+    userId: "user1",
+    temperature: 0.4,
+    instructions: "",
+    lastRun: "1 week ago",
+    usage: 8900,
+    successRate: 99,
+  },
 ];
 
 const MOCK_WORKFLOWS = [
   {
-    id: '1',
-    name: 'Content Pipeline',
-    trigger: 'manual',
-    steps: ['research', 'script', 'seo', 'thumbnail'],
+    id: "1",
+    name: "Content Pipeline",
+    trigger: "manual",
+    steps: ["research", "script", "seo", "thumbnail"],
     executionCount: 12,
-    lastExecution: '2 days ago',
+    lastExecution: "2 days ago",
   },
   {
-    id: '2',
-    name: 'Trend Analyzer',
-    trigger: 'scheduled',
-    steps: ['trend', 'research', 'analytics'],
+    id: "2",
+    name: "Trend Analyzer",
+    trigger: "scheduled",
+    steps: ["trend", "research", "analytics"],
     executionCount: 45,
-    lastExecution: '1 hour ago',
+    lastExecution: "1 hour ago",
   },
 ];
 
 export default function AgentsDashboard() {
   const [selectedAgent, setSelectedAgent] = useState<any | null>(null);
   const [showWorkflowBuilder, setShowWorkflowBuilder] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [agents, setAgents] = useState(MOCK_AGENTS);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [agents] = useState(MOCK_AGENTS);
   const [workflows, setWorkflows] = useState(MOCK_WORKFLOWS);
 
   const handleWorkflowSave = (workflow: any) => {
-    console.log('Workflow saved:', workflow);
+    console.log("Workflow saved:", workflow);
     setWorkflows([
       ...workflows,
       {
@@ -57,7 +146,7 @@ export default function AgentsDashboard() {
 
   const stats = {
     totalAgents: agents.length,
-    activeAgents: agents.filter((a) => a.status === 'active').length,
+    activeAgents: agents.filter((a) => a.status === "active").length,
     totalTokens: agents.reduce((sum, a) => sum + a.usage, 0),
     totalWorkflows: workflows.length,
   };
@@ -81,9 +170,13 @@ export default function AgentsDashboard() {
               <div className="p-2 bg-blue-500/20 rounded-xl">
                 <Bot className="w-6 h-6 text-blue-400" />
               </div>
-              <h1 className="text-3xl font-bold text-white tracking-tight">Agent Fleet</h1>
+              <h1 className="text-3xl font-bold text-white tracking-tight">
+                Agent Fleet
+              </h1>
             </div>
-            <p className="text-zinc-400">Manage and configure your specialized AI agents.</p>
+            <p className="text-zinc-400">
+              Manage and configure your specialized AI agents.
+            </p>
           </div>
           <div className="flex gap-3">
             <button
@@ -95,21 +188,21 @@ export default function AgentsDashboard() {
             </button>
             <div className="flex gap-1 bg-white/5 rounded-lg p-1 border border-white/10">
               <button
-                onClick={() => setViewMode('grid')}
+                onClick={() => setViewMode("grid")}
                 className={`p-2 rounded transition-colors ${
-                  viewMode === 'grid'
-                    ? 'bg-white/10 text-white'
-                    : 'text-zinc-400 hover:text-white'
+                  viewMode === "grid"
+                    ? "bg-white/10 text-white"
+                    : "text-zinc-400 hover:text-white"
                 }`}
               >
                 <LayoutGrid className="w-4 h-4" />
               </button>
               <button
-                onClick={() => setViewMode('list')}
+                onClick={() => setViewMode("list")}
                 className={`p-2 rounded transition-colors ${
-                  viewMode === 'list'
-                    ? 'bg-white/10 text-white'
-                    : 'text-zinc-400 hover:text-white'
+                  viewMode === "list"
+                    ? "bg-white/10 text-white"
+                    : "text-zinc-400 hover:text-white"
                 }`}
               >
                 <List className="w-4 h-4" />
@@ -121,10 +214,14 @@ export default function AgentsDashboard() {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
           {[
-            { label: 'Total Agents', value: stats.totalAgents, icon: Bot },
-            { label: 'Active', value: stats.activeAgents, icon: Activity },
-            { label: 'Workflows', value: stats.totalWorkflows, icon: Zap },
-            { label: 'Total Tokens', value: `${(stats.totalTokens / 1000).toFixed(1)}k`, icon: Cpu },
+            { label: "Total Agents", value: stats.totalAgents, icon: Bot },
+            { label: "Active", value: stats.activeAgents, icon: Activity },
+            { label: "Workflows", value: stats.totalWorkflows, icon: Zap },
+            {
+              label: "Total Tokens",
+              value: `${(stats.totalTokens / 1000).toFixed(1)}k`,
+              icon: Cpu,
+            },
           ].map(({ label, value, icon: Icon }) => (
             <div
               key={label}
@@ -143,7 +240,7 @@ export default function AgentsDashboard() {
         <div className="mb-12">
           <h2 className="text-xl font-bold text-white mb-6">My Agents</h2>
 
-          {viewMode === 'grid' ? (
+          {viewMode === "grid" ? (
             /* Grid View */
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {agents.map((agent, i) => (
@@ -158,16 +255,16 @@ export default function AgentsDashboard() {
                     <div className="flex items-center gap-3">
                       <div
                         className={`p-2 rounded-xl ${
-                          agent.status === 'active'
-                            ? 'bg-green-500/20'
-                            : 'bg-zinc-800'
+                          agent.status === "active"
+                            ? "bg-green-500/20"
+                            : "bg-zinc-800"
                         }`}
                       >
                         <Bot
                           className={`w-5 h-5 ${
-                            agent.status === 'active'
-                              ? 'text-green-400'
-                              : 'text-zinc-500'
+                            agent.status === "active"
+                              ? "text-green-400"
+                              : "text-zinc-500"
                           }`}
                         />
                       </div>
@@ -178,9 +275,9 @@ export default function AgentsDashboard() {
                         <div className="flex items-center gap-2">
                           <span
                             className={`w-2 h-2 rounded-full ${
-                              agent.status === 'active'
-                                ? 'bg-green-500'
-                                : 'bg-zinc-600'
+                              agent.status === "active"
+                                ? "bg-green-500"
+                                : "bg-zinc-600"
                             }`}
                           />
                           <span className="text-xs text-zinc-400 capitalize">
@@ -247,16 +344,16 @@ export default function AgentsDashboard() {
                   <div className="flex items-center gap-4 flex-1">
                     <div
                       className={`p-2 rounded-lg ${
-                        agent.status === 'active'
-                          ? 'bg-green-500/20'
-                          : 'bg-zinc-800'
+                        agent.status === "active"
+                          ? "bg-green-500/20"
+                          : "bg-zinc-800"
                       }`}
                     >
                       <Bot
                         className={`w-4 h-4 ${
-                          agent.status === 'active'
-                            ? 'text-green-400'
-                            : 'text-zinc-500'
+                          agent.status === "active"
+                            ? "text-green-400"
+                            : "text-zinc-500"
                         }`}
                       />
                     </div>
@@ -275,9 +372,7 @@ export default function AgentsDashboard() {
                       </div>
                       <div>
                         <p className="text-xs text-zinc-500">Last Run</p>
-                        <p className="text-sm text-white">
-                          {agent.lastRun}
-                        </p>
+                        <p className="text-sm text-white">{agent.lastRun}</p>
                       </div>
                       <div>
                         <p className="text-xs text-zinc-500">Success Rate</p>
@@ -289,9 +384,9 @@ export default function AgentsDashboard() {
                         <p className="text-xs text-zinc-500">Status</p>
                         <p
                           className={`text-sm font-medium capitalize ${
-                            agent.status === 'active'
-                              ? 'text-green-400'
-                              : 'text-zinc-500'
+                            agent.status === "active"
+                              ? "text-green-400"
+                              : "text-zinc-500"
                           }`}
                         >
                           {agent.status}
@@ -319,7 +414,9 @@ export default function AgentsDashboard() {
         {/* Workflows Section */}
         {workflows.length > 0 && (
           <div>
-            <h2 className="text-xl font-bold text-white mb-6">Active Workflows</h2>
+            <h2 className="text-xl font-bold text-white mb-6">
+              Active Workflows
+            </h2>
             <div className="space-y-3">
               {workflows.map((workflow) => (
                 <div
@@ -348,7 +445,7 @@ export default function AgentsDashboard() {
                       <div>
                         <p className="text-xs text-zinc-500">Last Run</p>
                         <p className="text-sm text-white">
-                          {workflow.lastExecution || 'Never'}
+                          {workflow.lastExecution || "Never"}
                         </p>
                       </div>
                       <div>
@@ -374,64 +471,6 @@ export default function AgentsDashboard() {
           agent={selectedAgent}
           onClose={() => setSelectedAgent(null)}
         />
-      )}
-    </div>
-  );
-}
-                    <h3 className="text-lg font-semibold text-white">{agent.name}</h3>
-                    <div className="flex items-center gap-2">
-                      <span className={`w-2 h-2 rounded-full ${agent.status === 'active' ? 'bg-green-500' : 'bg-zinc-600'}`} />
-                      <span className="text-xs text-zinc-400 capitalize">{agent.status}</span>
-                    </div>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => setSelectedAgent(agent)}
-                  className="p-2 text-zinc-500 hover:text-white hover:bg-white/10 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-                >
-                  <Settings className="w-4 h-4" />
-                </button>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2 text-zinc-500">
-                    <Cpu className="w-4 h-4" />
-                    Model
-                  </div>
-                  <span className="text-zinc-300 bg-white/5 px-2 py-1 rounded-md text-xs font-mono">{agent.model}</span>
-                </div>
-                
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2 text-zinc-500">
-                    <Clock className="w-4 h-4" />
-                    Last Run
-                  </div>
-                  <span className="text-zinc-300">{agent.lastRun}</span>
-                </div>
-
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-2 text-zinc-500">
-                    <Activity className="w-4 h-4" />
-                    Usage
-                  </div>
-                  <span className="text-zinc-300">{agent.usage}</span>
-                </div>
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-white/5 flex gap-3">
-                <button className="flex-1 flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white py-2 rounded-xl text-sm font-medium transition-colors">
-                  <Play className="w-4 h-4" />
-                  Test Run
-                </button>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-
-      {selectedAgent && (
-        <AgentSettingsModal agent={selectedAgent} onClose={() => setSelectedAgent(null)} />
       )}
     </div>
   );

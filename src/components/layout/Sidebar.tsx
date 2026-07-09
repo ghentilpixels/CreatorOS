@@ -18,6 +18,7 @@ import {
   Settings,
   Sparkles,
 } from "lucide-react";
+import { UpgradeToPro } from "@/components/upgrade/upgrade-modal";
 
 const menuItems = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard },
@@ -72,13 +73,15 @@ export function Sidebar() {
       </nav>
 
       <div className="p-4 border-t border-border">
-        <div className="p-4 rounded-xl glass bg-gradient-to-br from-primary/10 to-transparent">
-          <h4 className="text-sm font-semibold mb-1">Upgrade to Pro</h4>
-          <p className="text-xs text-muted-foreground mb-3">Unlock all AI features</p>
-          <button className="w-full py-2 bg-foreground text-background text-xs font-bold rounded-lg hover:opacity-90 transition-opacity">
-            Upgrade Now
-          </button>
-        </div>
+        <UpgradeToPro>
+          <div className="p-4 rounded-xl glass bg-gradient-to-br from-primary/10 to-transparent cursor-pointer group">
+            <h4 className="text-sm font-semibold mb-1">Upgrade to Pro</h4>
+            <p className="text-xs text-muted-foreground mb-3">Unlock all AI features</p>
+            <button className="w-full py-2 bg-foreground text-background text-xs font-bold rounded-lg group-hover:opacity-90 transition-opacity">
+              Upgrade Now
+            </button>
+          </div>
+        </UpgradeToPro>
       </div>
     </aside>
   );

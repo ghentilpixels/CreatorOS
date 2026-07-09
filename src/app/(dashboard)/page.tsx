@@ -1,16 +1,19 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
-import { 
-  Plus, 
-  Search, 
-  FileText, 
+import {
+  Plus,
+  Search,
+  FileText,
   Image as ImageIcon,
   PlaySquare,
   TrendingUp,
   Clock,
-  MoreVertical
+  MoreVertical,
+  Sparkles,
 } from "lucide-react";
+import { UpgradeToPro } from "@/components/upgrade/upgrade-modal";
+import { Button } from "@/components/ui/button";
 
 const quickActions = [
   { name: "New Project", icon: Plus, color: "bg-blue-500/10 text-blue-500 border-blue-500/20" },
@@ -35,17 +38,16 @@ const recentProjects = [
 export default function Dashboard() {
   return (
     <div className="space-y-8 pb-10">
-      {/* Welcome Section */}
       <section className="relative p-8 rounded-2xl overflow-hidden glass border-primary/20 bg-gradient-to-br from-primary/10 via-background/50 to-background/50">
         <div className="relative z-10">
-          <motion.h1 
+          <motion.h1
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className="text-3xl font-bold tracking-tight mb-2 text-glow"
           >
             Welcome back, Creator
           </motion.h1>
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
@@ -57,10 +59,9 @@ export default function Dashboard() {
         <div className="absolute right-0 bottom-0 top-0 w-1/3 bg-gradient-to-l from-primary/20 to-transparent blur-3xl pointer-events-none" />
       </section>
 
-      {/* Stats Cards */}
       <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, i) => (
-          <motion.div 
+          <motion.div
             key={stat.label}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -78,7 +79,6 @@ export default function Dashboard() {
         ))}
       </section>
 
-      {/* Quick Actions */}
       <section>
         <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
           <PlaySquare className="w-5 h-5 text-primary" />
@@ -102,10 +102,7 @@ export default function Dashboard() {
         </div>
       </section>
 
-      {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Recent Projects */}
         <section className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold">Recent Projects</h2>
@@ -114,11 +111,11 @@ export default function Dashboard() {
           <div className="glass rounded-2xl overflow-hidden">
             <div className="divide-y divide-border">
               {recentProjects.map((project, i) => (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.4 + (i * 0.1) }}
-                  key={project.name} 
+                  key={project.name}
                   className="p-4 flex items-center justify-between hover:bg-white/5 transition-colors cursor-pointer"
                 >
                   <div className="flex items-center gap-4">
@@ -148,9 +145,23 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {/* Today's Tasks */}
         <section className="space-y-4">
-          <h2 className="text-xl font-bold">Today's Tasks</h2>
+          <UpgradeToPro>
+            <div className="p-5 rounded-2xl glass border-primary/20 bg-gradient-to-br from-primary/10 via-background/50 to-background/50 cursor-pointer group hover:from-primary/15 transition-all">
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="w-4 h-4 text-yellow-400" />
+                <h3 className="font-semibold text-sm">Unlock CreatorOS Pro</h3>
+              </div>
+              <p className="text-xs text-muted-foreground mb-4">
+                Get unlimited AI generations, all studios, and custom agents.
+              </p>
+              <Button size="sm" className="w-full group-hover:opacity-90 transition-opacity">
+                Upgrade to Pro
+              </Button>
+            </div>
+          </UpgradeToPro>
+
+          <h2 className="text-xl font-bold pt-2">Today's Tasks</h2>
           <div className="glass rounded-2xl p-4">
             <div className="space-y-3">
               {[
@@ -158,11 +169,11 @@ export default function Dashboard() {
                 { title: "Design Thumbnail", time: "2:00 PM", done: false },
                 { title: "SEO Keyword Research", time: "4:30 PM", done: false }
               ].map((task, i) => (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 + (i * 0.1) }}
-                  key={task.title} 
+                  key={task.title}
                   className="flex items-start gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors cursor-pointer group"
                 >
                   <div className="mt-0.5 w-4 h-4 rounded-full border border-muted-foreground flex-shrink-0 group-hover:border-primary transition-colors" />
