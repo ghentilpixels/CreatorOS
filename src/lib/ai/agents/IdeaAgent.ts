@@ -1,6 +1,6 @@
 import { generateObject } from 'ai';
 import { z } from 'zod';
-import { getModel } from '../providers';
+import { getFastModel } from '../providers';
 
 export interface IdeaAgentInput {
   topic: string;
@@ -16,7 +16,7 @@ export interface GeneratedIdea {
 
 export class IdeaAgent {
   async run(input: IdeaAgentInput): Promise<GeneratedIdea[]> {
-    const model = getModel();
+    const model = getFastModel();
 
     const { object } = await generateObject({
       model,
