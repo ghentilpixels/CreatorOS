@@ -1,27 +1,78 @@
 "use client";
 
-import { useState } from "react";
-import { User, Mail, Camera, Save } from "lucide-react";
+import { useState, useEffect } from "react";
+import { User, Mail, Camera, Save, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { getUserProfile, updateProfile } from "../actions";
+import { useAuthStore } from "@/store/useAuthStore";
+import { toast } from "sonner";
 
 export function ProfileSettings() {
-  const [name, setName] = useState("Creator");
-  const [email, setEmail] = useState("creator@example.com");
-  const [isLoading, setIsLoading] = useState(false);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const setAuthUser = useAuthStore((state) => state.login);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const result = await getUserProfile();
+      if (result.success && "user" in result) {
+        setName(result.user.name || "");
+        setEmail(result.user.email);
+        setAvatarUrl(result.user.avatarUrl || null);
+        
+        // Also update the global store so TopNav updates instantly
+        setAuthUser({
+          id: result.user.id,
+          name: result.user.name || "Creator",
+          email: result.user.email,
+          avatarUrl: result.user.avatarUrl || undefined
+        });
+      }
+      setIsLoading(false);
+    };
+    
+    fetchUser();
+  }, [setAuthUser]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
+    setIsSaving(true);
+    
+    const result = await updateProfile({ name });
+    
+    if (result.success && "user" in result) {
+      toast.success("Profile updated successfully!");
+      setAuthUser({
+        id: result.user.id,
+        name: result.user.name || "Creator",
+        email: result.user.email,
+        avatarUrl: result.user.avatarUrl || undefined
+      });
+    } else {
+      toast.error(result.error || "Failed to update profile");
+    }
+    
+    setIsSaving(false);
   };
 
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center p-20">
+          <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
-    <Card>
+    <Card className="glass border-white/5">
       <CardHeader>
         <CardTitle className="text-white">Profile</CardTitle>
       </CardHeader>
@@ -29,13 +80,17 @@ export function ProfileSettings() {
         <form onSubmit={handleSave} className="space-y-6">
           <div className="flex items-center gap-6">
             <div className="relative h-20 w-20 rounded-full bg-zinc-800 flex items-center justify-center overflow-hidden border border-white/10 group cursor-pointer">
-              <User className="h-10 w-10 text-zinc-500" />
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                <User className="h-10 w-10 text-zinc-500" />
+              )}
               <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <Camera className="h-5 w-5 text-white" />
               </div>
             </div>
             <div>
-              <Button type="button" variant="outline" size="sm">
+              <Button type="button" variant="outline" size="sm" className="bg-white/5 hover:bg-white/10 border-white/10">
                 Change avatar
               </Button>
             </div>
@@ -51,6 +106,7 @@ export function ProfileSettings() {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                className="bg-black/40 border-white/10"
               />
               <p className="text-xs text-zinc-500">
                 Your name may appear around CreatorOS where you contribute or are mentioned.
@@ -66,6 +122,7 @@ export function ProfileSettings() {
                 type="email"
                 value={email}
                 disabled
+                className="bg-black/20 border-white/5 text-muted-foreground"
               />
               <p className="text-xs text-zinc-500">
                 Your email is managed by your authentication provider.
@@ -74,11 +131,11 @@ export function ProfileSettings() {
           </div>
 
           <div className="flex justify-end max-w-xl">
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? (
-                <div className="h-4 w-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+            <Button type="submit" disabled={isSaving} className="bg-white text-black hover:bg-white/90">
+              {isSaving ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               ) : (
-                <Save className="h-4 w-4" />
+                <Save className="h-4 w-4 mr-2" />
               )}
               Save Changes
             </Button>

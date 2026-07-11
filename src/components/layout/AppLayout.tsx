@@ -2,9 +2,28 @@
 
 import { Sidebar } from "./Sidebar";
 import { TopNav } from "./TopNav";
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
+import { useAuthStore } from "@/store/useAuthStore";
+import { getUserProfile } from "@/features/settings/actions";
 
 export function AppLayout({ children }: { children: ReactNode }) {
+  const login = useAuthStore((state) => state.login);
+
+  useEffect(() => {
+    async function loadUser() {
+      const result = await getUserProfile();
+      if (result.success && "user" in result) {
+        login({
+          id: result.user.id,
+          name: result.user.name || "Creator",
+          email: result.user.email,
+          avatarUrl: result.user.avatarUrl || undefined,
+        });
+      }
+    }
+    loadUser();
+  }, [login]);
+
   return (
     <div className="flex h-screen bg-background overflow-hidden selection:bg-primary/30">
       <Sidebar />

@@ -1,29 +1,57 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { prisma } from "@/lib/prisma";
+import { requireUser } from "@/lib/auth/session";
+import { getActiveWorkspace } from "@/lib/workspace/session";
+import { handleActionError } from "@/lib/errors";
 
-// This file sets up the foundation for server actions hitting Prisma.
-// For the preview, we just log and return mocked success to prevent crashes
-// before the user configures their actual Supabase DATABASE_URL.
-
-export async function createProject(formData: FormData) {
+export async function getProjects() {
   try {
-    const title = formData.get("name") as string;
-    const platform = formData.get("platform") as string;
-    const category = formData.get("category") as string;
+    const user = await requireUser();
+    const workspace = await getActiveWorkspace(user);
+    if (!workspace) throw new Error("NO_WORKSPACE");
 
-    console.log("Creating Project (Server Action):", { title, platform, category });
-    
-    // Example Prisma implementation:
-    // await prisma.project.create({
-    //   data: { title, platform, category, userId: "mock-user-id" }
-    // });
+    const projects = await prisma.project.findMany({
+      where: {
+        workspaceId: workspace.id,
+      },
+      include: {
+        _count: {
+          select: { videos: true }
+        }
+      },
+      orderBy: { updatedAt: "desc" },
+    });
+
+    return { success: true as const, projects };
+  } catch (error) {
+    return handleActionError(error);
+  }
+}
+
+export async function createProject(name: string, platform: string, category: string) {
+  try {
+    const user = await requireUser();
+    const workspace = await getActiveWorkspace(user);
+    if (!workspace) throw new Error("NO_WORKSPACE");
+
+    const project = await prisma.project.create({
+      data: {
+        title: name,
+        platform,
+        category,
+        userId: user.id,
+        workspaceId: workspace.id,
+        status: "active",
+      },
+    });
 
     revalidatePath("/projects");
-    return { success: true };
+    revalidatePath("/");
+    return { success: true as const, projectId: project.id };
   } catch (error) {
-    console.error("Failed to create project", error);
-    return { success: false, error: "Failed to create project" };
+    return handleActionError(error);
   }
 }
 

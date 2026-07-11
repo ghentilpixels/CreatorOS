@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
@@ -29,47 +29,52 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-
-const mockProjects = [
-  {
-    id: "1",
-    title: "Tech Reviews Channel",
-    description:
-      "Main YouTube channel focusing on tech hardware and software reviews.",
-    platform: "YouTube",
-    category: "Technology",
-    status: "active",
-    updatedAt: "2 hours ago",
-    videosCount: 45,
-  },
-  {
-    id: "2",
-    title: "Coding Tutorials",
-    description: "Web development and software engineering tutorials.",
-    platform: "YouTube",
-    category: "Education",
-    status: "active",
-    updatedAt: "1 day ago",
-    videosCount: 128,
-  },
-  {
-    id: "3",
-    title: "Personal Vlog",
-    description: "Behind the scenes and day in the life content.",
-    platform: "YouTube",
-    category: "Lifestyle",
-    status: "draft",
-    updatedAt: "3 days ago",
-    videosCount: 12,
-  },
-];
+import { getProjects, createProject } from "@/features/projects/actions";
 
 export default function ProjectsDashboard() {
+  const [projects, setProjects] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [createData, setCreateData] = useState({ name: "", platform: "YouTube", category: "" });
 
-  const filteredProjects = mockProjects.filter((p) =>
+  const fetchProjects = async () => {
+    setLoading(true);
+    const res = await getProjects();
+    if (res.success && "projects" in res) {
+      setProjects(res.projects.map((p: any) => ({
+        id: p.id,
+        title: p.title,
+        description: p.description || "No description provided.",
+        platform: p.platform || "YouTube",
+        category: p.category || "",
+        status: p.status,
+        updatedAt: new Date(p.updatedAt).toLocaleDateString(),
+        videosCount: p._count?.videos || 0
+      })));
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
+  const handleCreate = async () => {
+    if (!createData.name) return;
+    setIsCreating(true);
+    const res = await createProject(createData.name, createData.platform, createData.category);
+    setIsCreating(false);
+    if (res.success) {
+      setIsCreateOpen(false);
+      fetchProjects();
+      setCreateData({ name: "", platform: "YouTube", category: "" });
+    }
+  };
+
+  const filteredProjects = projects.filter((p) =>
     p.title.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
@@ -105,6 +110,8 @@ export default function ProjectsDashboard() {
                   id="name"
                   placeholder="e.g. Tech Channel"
                   className="bg-background/50"
+                  value={createData.name}
+                  onChange={(e) => setCreateData({ ...createData, name: e.target.value })}
                 />
               </div>
               <div className="grid gap-2">
@@ -113,6 +120,8 @@ export default function ProjectsDashboard() {
                   id="platform"
                   defaultValue="YouTube"
                   className="bg-background/50"
+                  value={createData.platform}
+                  onChange={(e) => setCreateData({ ...createData, platform: e.target.value })}
                 />
               </div>
               <div className="grid gap-2">
@@ -121,15 +130,17 @@ export default function ProjectsDashboard() {
                   id="category"
                   placeholder="e.g. Technology, Education"
                   className="bg-background/50"
+                  value={createData.category}
+                  onChange={(e) => setCreateData({ ...createData, category: e.target.value })}
                 />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
+              <Button variant="outline" onClick={() => setIsCreateOpen(false)} disabled={isCreating}>
                 Cancel
               </Button>
-              <Button onClick={() => setIsCreateOpen(false)}>
-                Create Project
+              <Button onClick={handleCreate} disabled={isCreating || !createData.name}>
+                {isCreating ? "Creating..." : "Create Project"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -204,10 +215,8 @@ export default function ProjectsDashboard() {
                 </div>
 
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="p-2 -mr-2 rounded-lg hover:bg-white/10 text-muted-foreground transition-colors">
-                      <MoreVertical className="w-4 h-4" />
-                    </button>
+                  <DropdownMenuTrigger className="p-2 -mr-2 rounded-lg hover:bg-white/10 text-muted-foreground transition-colors outline-none focus:ring-2 focus:ring-primary/50">
+                    <MoreVertical className="w-4 h-4" />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
                     align="end"
