@@ -1,5 +1,6 @@
 "use server";
 
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 
@@ -12,9 +13,11 @@ export interface AppUser {
 
 /**
  * Resolve the current user from Supabase auth.
+ * Wrapped with React `cache()` so multiple calls within a single
+ * server request share the same result (deduplication).
  * Falls back to a mock user in development so pages remain previewable.
  */
-export async function getCurrentUser(): Promise<AppUser | null> {
+export const getCurrentUser = cache(async (): Promise<AppUser | null> => {
   try {
     const supabase = await createClient();
     const {
@@ -59,7 +62,7 @@ export async function getCurrentUser(): Promise<AppUser | null> {
   }
 
   return null;
-}
+});
 
 /**
  * Require an authenticated user. Throws a clear error if not authenticated.

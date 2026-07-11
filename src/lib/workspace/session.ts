@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { requireUser, type AppUser } from "@/lib/auth/session";
@@ -15,9 +16,10 @@ export interface ActiveWorkspace {
 
 /**
  * Get the currently active workspace for the request.
- * Falls back to the user's first workspace or a default workspace.
+ * Wrapped with React `cache()` so multiple server actions in the same
+ * request share the result (no redundant DB queries).
  */
-export async function getActiveWorkspace(user?: AppUser): Promise<ActiveWorkspace | null> {
+export const getActiveWorkspace = cache(async (user?: AppUser): Promise<ActiveWorkspace | null> => {
   const currentUser = user ?? (await requireUser());
 
   const cookieStore = await cookies();
@@ -60,7 +62,7 @@ export async function getActiveWorkspace(user?: AppUser): Promise<ActiveWorkspac
 
   // Last resort: create a default workspace for this user
   return ensureDefaultWorkspace(currentUser);
-}
+});
 
 /**
  * Set the active workspace cookie.
