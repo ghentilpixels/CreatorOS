@@ -194,12 +194,12 @@ export async function getAnalyticsOverview(
   }
 }
 
-function pctChange(current: number, previous: number) {
+async function pctChange(current: number, previous: number) {
   if (previous === 0) return current > 0 ? 100 : 0;
   return Math.round(((current - previous) / previous) * 1000) / 10;
 }
 
-export function formatMetric(value: number, type: "number" | "percent" | "currency" | "time") {
+export async function formatMetric(value: number, type: "number" | "percent" | "currency" | "time") {
   if (type === "percent") return `${value.toFixed(1)}%`;
   if (type === "currency") return `$${value.toFixed(2)}`;
   if (type === "time") {

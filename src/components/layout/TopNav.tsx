@@ -1,11 +1,27 @@
 "use client";
 
-import { Bell, Search, Menu, User as UserIcon } from "lucide-react";
+import { Bell, Search, Menu, User as UserIcon, LogOut } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { WorkspaceSwitcher } from "@/features/workspaces/components/WorkspaceSwitcher";
+import { createClient } from "@/lib/supabase/client";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuGroup,
+} from "@/components/ui/dropdown-menu";
 
 export function TopNav() {
   const user = useAuthStore((state) => state.user);
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    window.location.href = "/login";
+  };
 
   return (
     <header className="h-16 border-b border-border bg-background/50 backdrop-blur-md sticky top-0 z-40 flex items-center justify-between px-6">
@@ -39,21 +55,33 @@ export function TopNav() {
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full border-2 border-background" />
         </button>
         
-        <div className="flex items-center gap-3 pl-4 border-l border-border">
-          <div className="hidden sm:block text-right">
-            <p className="text-sm font-medium">{user?.name || "Guest"}</p>
-            <p className="text-xs text-muted-foreground">{user?.email || "Sign in"}</p>
-          </div>
-          <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-primary to-primary/50 p-[2px] cursor-pointer hover:opacity-80 transition-opacity">
-            <div className="h-full w-full rounded-full bg-background flex items-center justify-center overflow-hidden">
-              {user?.avatarUrl ? (
-                <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-              ) : (
-                <UserIcon className="w-4 h-4 text-foreground" />
-              )}
+        <DropdownMenu>
+          <DropdownMenuTrigger className="flex items-center gap-3 pl-4 border-l border-border outline-none hover:opacity-80 transition-opacity">
+            <div className="hidden sm:block text-right">
+              <p className="text-sm font-medium">{user?.name || "Guest"}</p>
+              <p className="text-xs text-muted-foreground">{user?.email || "Sign in"}</p>
             </div>
-          </div>
-        </div>
+            <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-primary to-primary/50 p-[2px]">
+              <div className="h-full w-full rounded-full bg-background flex items-center justify-center overflow-hidden">
+                {user?.avatarUrl ? (
+                  <img src={user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <UserIcon className="w-4 h-4 text-foreground" />
+                )}
+              </div>
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={handleLogout} className="text-red-500 cursor-pointer">
+              <LogOut className="w-4 h-4 mr-2" />
+              Log out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

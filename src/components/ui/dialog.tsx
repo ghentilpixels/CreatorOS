@@ -11,7 +11,19 @@ function Dialog({ ...props }: DialogPrimitive.Root.Props) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />;
 }
 
-function DialogTrigger({ ...props }: DialogPrimitive.Trigger.Props) {
+function DialogTrigger({
+  asChild,
+  ...props
+}: DialogPrimitive.Trigger.Props & { asChild?: boolean }) {
+  if (asChild && React.isValidElement(props.children)) {
+    return (
+      <DialogPrimitive.Trigger
+        data-slot="dialog-trigger"
+        {...props}
+        render={props.children}
+      />
+    );
+  }
   return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />;
 }
 
@@ -64,12 +76,10 @@ function DialogContent({
             variant="ghost"
             className="absolute top-2 right-2"
             size="icon-sm"
-            asChild
+            render={<DialogPrimitive.Close data-slot="dialog-close" />}
           >
-            <DialogPrimitive.Close data-slot="dialog-close">
-              <XIcon />
-              <span className="sr-only">Close</span>
-            </DialogPrimitive.Close>
+            <XIcon />
+            <span className="sr-only">Close</span>
           </Button>
         )}
       </DialogPrimitive.Popup>
@@ -106,8 +116,8 @@ function DialogFooter({
     >
       {children}
       {showCloseButton && (
-        <Button variant="outline" asChild>
-          <DialogPrimitive.Close>Close</DialogPrimitive.Close>
+        <Button variant="outline" render={<DialogPrimitive.Close />}>
+          Close
         </Button>
       )}
     </div>

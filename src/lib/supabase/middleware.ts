@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function updateSession(request: NextRequest) {
-  const response = NextResponse.next({
+  let supabaseResponse = NextResponse.next({
     request,
   });
 
@@ -19,16 +19,44 @@ export async function updateSession(request: NextRequest) {
       getAll() {
         return request.cookies.getAll();
       },
-
       setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) => {
-          response.cookies.set(name, value, options);
+        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
+        supabaseResponse = NextResponse.next({
+          request,
         });
+        cookiesToSet.forEach(({ name, value, options }) =>
+          supabaseResponse.cookies.set(name, value, options)
+        );
       },
     },
   });
 
-  await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  return response;
+  const PUBLIC_ROUTES = ["/login", "/signup", "/forgot-password", "/auth/callback"];
+  const isPublicRoute = PUBLIC_ROUTES.includes(request.nextUrl.pathname);
+
+  if (!user && !isPublicRoute) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    const redirectResponse = NextResponse.redirect(url);
+    // Copy cookies to redirect response
+    supabaseResponse.cookies.getAll().forEach(cookie => {
+      redirectResponse.cookies.set(cookie.name, cookie.value, cookie.options || {});
+    });
+    return redirectResponse;
+  }
+
+  if (user && isPublicRoute && request.nextUrl.pathname !== "/auth/callback") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/";
+    const redirectResponse = NextResponse.redirect(url);
+    // Copy cookies to redirect response
+    supabaseResponse.cookies.getAll().forEach(cookie => {
+      redirectResponse.cookies.set(cookie.name, cookie.value, cookie.options || {});
+    });
+    return redirectResponse;
+  }
+
+  return supabaseResponse;
 }
