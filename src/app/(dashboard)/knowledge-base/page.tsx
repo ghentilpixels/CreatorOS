@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { Folder, FileText, ChevronRight, Search, Plus, ExternalLink, Download } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Folder, FileText, ChevronRight, Search, Plus, ExternalLink, Download, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -45,12 +45,20 @@ const mockDocs = [
 
 const folders = ["All Documents", "Pre-Production", "Production", "Post-Production", "Business"];
 
+const FOLDER_COLORS: Record<string, { icon: string; bg: string }> = {
+  "All Documents":   { icon: "text-primary",      bg: "bg-primary/10" },
+  "Pre-Production":  { icon: "text-yellow-400",   bg: "bg-yellow-500/10" },
+  "Production":      { icon: "text-blue-400",     bg: "bg-blue-500/10" },
+  "Post-Production": { icon: "text-purple-400",   bg: "bg-purple-500/10" },
+  "Business":        { icon: "text-emerald-400",  bg: "bg-emerald-500/10" },
+};
+
 export default function KnowledgeBase() {
   const [activeFolder, setActiveFolder] = useState("All Documents");
   const [activeDocId, setActiveDocId] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const filteredDocs = mockDocs.filter(doc => 
+  const filteredDocs = mockDocs.filter(doc =>
     (activeFolder === "All Documents" || doc.folder === activeFolder) &&
     doc.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -59,11 +67,12 @@ export default function KnowledgeBase() {
 
   return (
     <div className="h-[calc(100vh-8rem)] flex flex-col md:flex-row gap-6 pb-6">
-      
       {/* Sidebar Navigation */}
-      <div className="w-full md:w-72 shrink-0 flex flex-col gap-6">
+      <div className="w-full md:w-72 shrink-0 flex flex-col gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-glow mb-1">Knowledge Base</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-glow flex items-center gap-2 mb-1">
+            <BookOpen className="w-6 h-6 text-primary" /> Knowledge Base
+          </h1>
           <p className="text-sm text-muted-foreground">Standard Operating Procedures.</p>
         </div>
 
@@ -73,16 +82,18 @@ export default function KnowledgeBase() {
 
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input 
-            placeholder="Search docs..." 
+          <Input
+            placeholder="Search docs..."
             className="pl-9 bg-background/50 border-white/10"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
 
-        <div className="flex-1 overflow-y-auto space-y-6 scrollbar-hide pr-2">
+        {/* Folder list */}
+        <div className="flex-1 overflow-y-auto space-y-1">
           {folders.map(folder => {
+            const fc = FOLDER_COLORS[folder];
             const folderDocs = mockDocs.filter(d => d.folder === folder);
             if (folder !== "All Documents" && folderDocs.length === 0) return null;
 
@@ -90,23 +101,28 @@ export default function KnowledgeBase() {
               <div key={folder}>
                 <button
                   onClick={() => setActiveFolder(folder)}
-                  className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm font-semibold transition-colors ${
-                    activeFolder === folder ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm font-medium transition-all ${
+                    activeFolder === folder
+                      ? `${fc.bg} ${fc.icon}`
+                      : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
                   }`}
                 >
-                  <Folder className="w-4 h-4" /> {folder}
+                  <Folder className="w-4 h-4 shrink-0" />
+                  {folder}
+                  {folder !== "All Documents" && (
+                    <span className="ml-auto text-xs opacity-60">{folderDocs.length}</span>
+                  )}
                 </button>
-                
-                {/* Documents inside folder (if active or if it's the specific folder) */}
+
                 {(activeFolder === folder || activeFolder === "All Documents") && folder !== "All Documents" && (
-                  <div className="mt-2 ml-3 pl-3 border-l border-white/10 flex flex-col gap-1">
+                  <div className="mt-1 ml-3 pl-3 border-l border-white/8 flex flex-col gap-0.5">
                     {folderDocs.map(doc => (
                       <button
                         key={doc.id}
                         onClick={() => setActiveDocId(doc.id)}
-                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors text-left ${
-                          activeDocId === doc.id 
-                            ? "bg-primary/10 text-primary font-medium" 
+                        className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors text-left ${
+                          activeDocId === doc.id
+                            ? "bg-primary/10 text-primary font-medium"
                             : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
                         }`}
                       >
@@ -124,46 +140,55 @@ export default function KnowledgeBase() {
 
       {/* Document Viewer */}
       <div className="flex-1 flex flex-col overflow-hidden glass rounded-3xl border-white/5 shadow-2xl relative">
-        {activeDoc ? (
-          <>
-            <div className="p-6 border-b border-white/5 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-background/30 backdrop-blur-md relative z-10">
-              <div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium mb-2 uppercase tracking-wider">
-                  <span>{activeDoc.folder}</span>
-                  <ChevronRight className="w-3 h-3" />
-                  <span>{activeDoc.title}</span>
-                </div>
-                <h2 className="text-2xl font-bold">{activeDoc.title}</h2>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <Button variant="outline" size="sm" className="bg-background/50 border-white/10 gap-2">
-                  <Download className="w-4 h-4" /> PDF
-                </Button>
-                <Button size="sm" className="gap-2">
-                  Edit
-                </Button>
-              </div>
-            </div>
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-3xl rounded-full pointer-events-none" />
 
-            <div className="flex-1 overflow-y-auto p-8 lg:p-12 scrollbar-hide bg-gradient-to-b from-transparent to-background/30">
-              <div className="max-w-3xl mx-auto prose prose-invert prose-headings:font-bold prose-a:text-primary prose-li:marker:text-primary/50">
-                <div dangerouslySetInnerHTML={{ __html: activeDoc.content }} />
-                
-                <div className="mt-12 pt-6 border-t border-white/10 text-xs text-muted-foreground flex items-center justify-between">
-                  <span>Last updated {activeDoc.lastUpdated}</span>
-                  <Button variant="link" className="h-auto p-0 text-muted-foreground hover:text-foreground gap-1">
-                    <ExternalLink className="w-3 h-3" /> View History
+        <AnimatePresence mode="wait">
+          {activeDoc ? (
+            <motion.div
+              key={activeDoc.id}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex flex-col h-full relative z-10"
+            >
+              {/* Doc header */}
+              <div className="p-6 border-b border-white/5 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center bg-background/30 backdrop-blur-md">
+                <div>
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium mb-2 uppercase tracking-wider">
+                    <span>{activeDoc.folder}</span>
+                    <ChevronRight className="w-3 h-3" />
+                    <span>{activeDoc.title}</span>
+                  </div>
+                  <h2 className="text-2xl font-bold">{activeDoc.title}</h2>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Button variant="outline" size="sm" className="bg-background/50 border-white/10 hover:bg-white/5 gap-2">
+                    <Download className="w-4 h-4" /> PDF
                   </Button>
+                  <Button size="sm" className="shadow-lg shadow-primary/20">Edit</Button>
                 </div>
               </div>
+
+              <div className="flex-1 overflow-y-auto p-8 lg:p-12 bg-gradient-to-b from-transparent to-background/20">
+                <div className="max-w-3xl mx-auto prose prose-invert prose-headings:font-bold prose-headings:tracking-tight prose-a:text-primary prose-li:marker:text-primary/50">
+                  <div dangerouslySetInnerHTML={{ __html: activeDoc.content }} />
+
+                  <div className="mt-12 pt-6 border-t border-white/10 text-xs text-muted-foreground flex items-center justify-between">
+                    <span>Last updated {activeDoc.lastUpdated}</span>
+                    <Button variant="link" className="h-auto p-0 text-muted-foreground hover:text-foreground gap-1 text-xs">
+                      <ExternalLink className="w-3 h-3" /> View History
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center p-12 text-center text-muted-foreground relative z-10">
+              <FileText className="w-16 h-16 opacity-10 mb-4" />
+              <p>Select a document to view its contents.</p>
             </div>
-          </>
-        ) : (
-          <div className="flex-1 flex flex-col items-center justify-center p-12 text-center text-muted-foreground">
-            <FileText className="w-16 h-16 opacity-20 mb-4" />
-            <p>Select a document to view its contents.</p>
-          </div>
-        )}
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

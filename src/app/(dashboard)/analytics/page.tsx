@@ -45,31 +45,33 @@ export default function AnalyticsDashboard() {
         if (!cancelled) setLoading(false);
       });
 
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [range]);
 
   return (
-    <div className="space-y-6 pb-10">
+    <div className="space-y-8 pb-10">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-glow flex items-center gap-3">
-            <BarChart3 className="w-7 h-7 text-primary" />
+            <div className="p-2 bg-cyan-500/15 rounded-xl">
+              <BarChart3 className="w-6 h-6 text-cyan-400" />
+            </div>
             Analytics
           </h1>
           <p className="text-muted-foreground mt-1">Deep dive into your content performance.</p>
         </div>
 
-        <div className="flex bg-muted/50 p-1 rounded-lg">
+        {/* Date Range Tabs */}
+        <div className="glass rounded-xl p-1 flex gap-1">
           {RANGES.map((r) => (
             <button
               key={r.value}
               onClick={() => setRange(r.value)}
-              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-all ${
+              className={`px-4 py-2 text-sm font-medium rounded-lg transition-all ${
                 range === r.value
-                  ? "bg-background shadow-sm text-foreground"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
+                  : "text-muted-foreground hover:text-foreground hover:bg-white/5"
               }`}
             >
               {r.label}
@@ -85,9 +87,9 @@ export default function AnalyticsDashboard() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="flex flex-col items-center justify-center py-20 text-muted-foreground"
+            className="glass rounded-3xl flex flex-col items-center justify-center py-32 text-muted-foreground"
           >
-            <Loader2 className="w-8 h-8 animate-spin mb-3" />
+            <Loader2 className="w-8 h-8 animate-spin mb-3 text-cyan-400" />
             <p className="text-sm">Loading analytics...</p>
           </motion.div>
         )}
@@ -98,7 +100,7 @@ export default function AnalyticsDashboard() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="flex items-center gap-3 p-4 rounded-2xl bg-red-500/10 text-red-500 border border-red-500/20"
+            className="flex items-center gap-3 p-5 rounded-2xl bg-red-500/10 text-red-400 border border-red-500/20"
           >
             <AlertCircle className="w-5 h-5 flex-shrink-0" />
             <p className="text-sm">{error}</p>

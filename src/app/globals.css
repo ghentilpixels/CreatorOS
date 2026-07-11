@@ -140,4 +140,24 @@
   .text-glow {
     text-shadow: 0 0 20px rgba(255,255,255,0.3);
   }
+
+  /* Hide scrollbars globally while keeping scroll functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;   /* IE / Edge */
+    scrollbar-width: none;      /* Firefox */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;              /* Chrome / Safari / Opera */
+  }
+}
+
+/* Remove scrollbar buttons/arrows from the entire page */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+*::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
