@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { motion } from "framer-motion";
 import {
@@ -15,6 +15,9 @@ import {
 import { UpgradeToPro } from "@/components/upgrade/upgrade-modal";
 import { Button } from "@/components/ui/button";
 
+import { useState, useEffect } from "react";
+import { getProjects } from "@/features/projects/actions";
+
 const quickActions = [
   { name: "New Project", icon: Plus, color: "bg-blue-500/10 text-blue-500 border-blue-500/20" },
   { name: "Research Topic", icon: Search, color: "bg-purple-500/10 text-purple-500 border-purple-500/20" },
@@ -22,20 +25,43 @@ const quickActions = [
   { name: "Create Thumbnail", icon: ImageIcon, color: "bg-amber-500/10 text-amber-500 border-amber-500/20" },
 ];
 
-const stats = [
-  { label: "Total Projects", value: "24", trend: "+12%", isUp: true },
-  { label: "Videos Created", value: "12", trend: "+3", isUp: true },
-  { label: "AI Generations", value: "1,284", trend: "+124", isUp: true },
-  { label: "Published Videos", value: "8", trend: "0", isUp: true },
-];
-
-const recentProjects = [
-  { name: "React 19 Complete Guide", status: "In Progress", date: "2 hours ago", type: "Tutorial" },
-  { name: "Top 5 AI Tools for Creators", status: "Draft", date: "Yesterday", type: "Listicle" },
-  { name: "Building a SaaS with Next.js", status: "Published", date: "3 days ago", type: "Vlog" },
-];
-
 export default function Dashboard() {
+  const [recentProjects, setRecentProjects] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState([
+    { label: "Total Projects", value: "0", trend: "0%", isUp: true },
+    { label: "Videos Created", value: "0", trend: "0", isUp: true },
+    { label: "AI Generations", value: "1,284", trend: "+124", isUp: true },
+    { label: "Published Videos", value: "8", trend: "0", isUp: true },
+  ]);
+
+  useEffect(() => {
+    async function loadData() {
+      setLoading(true);
+      const res = await getProjects();
+      if (res.success && "projects" in res) {
+        const projects = res.projects;
+        setRecentProjects(projects.slice(0, 3).map((p: any) => ({
+          id: p.id,
+          name: p.title,
+          status: p.status,
+          date: new Date(p.updatedAt).toLocaleDateString(),
+          type: p.category || "General"
+        })));
+
+        const totalVideos = projects.reduce((acc: number, p: any) => acc + (p._count?.videos || 0), 0);
+        
+        setStats([
+          { label: "Total Projects", value: projects.length.toString(), trend: "+10%", isUp: true },
+          { label: "Videos Created", value: totalVideos.toString(), trend: "+2", isUp: true },
+          { label: "AI Generations", value: "1,284", trend: "+124", isUp: true }, 
+          { label: "Published Videos", value: "8", trend: "0", isUp: true }, 
+        ]);
+      }
+      setLoading(false);
+    }
+    loadData();
+  }, []);
   return (
     <div className="space-y-8 pb-10">
       <section className="relative p-8 rounded-2xl overflow-hidden glass border-primary/20 bg-gradient-to-br from-primary/10 via-background/50 to-background/50">
