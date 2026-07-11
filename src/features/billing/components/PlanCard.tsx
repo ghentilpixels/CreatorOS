@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Sparkles } from "lucide-react";
+import { Check, Sparkles, Loader2 } from "lucide-react";;
 import { Button } from "@/components/ui/button";
 import type { PlanDefinition, PlanId } from "@/lib/subscription/plans";
 
