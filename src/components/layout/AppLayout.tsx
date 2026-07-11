@@ -11,14 +11,18 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     async function loadUser() {
-      const result = await getUserProfile();
-      if (result.success && "user" in result) {
-        login({
-          id: result.user.id,
-          name: result.user.name || "Creator",
-          email: result.user.email,
-          avatarUrl: result.user.avatarUrl || undefined,
-        });
+      try {
+        const result = await getUserProfile();
+        if (result.success && "user" in result) {
+          login({
+            id: result.user.id,
+            name: result.user.name || "Creator",
+            email: result.user.email,
+            avatarUrl: result.user.avatarUrl || undefined,
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load user in layout:", err);
       }
     }
     loadUser();

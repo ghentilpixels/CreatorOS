@@ -20,21 +20,25 @@ export function ProfileSettings() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const result = await getUserProfile();
-      if (result.success && "user" in result) {
-        setName(result.user.name || "");
-        setEmail(result.user.email);
-        setAvatarUrl(result.user.avatarUrl || null);
-        
-        // Also update the global store so TopNav updates instantly
-        setAuthUser({
-          id: result.user.id,
-          name: result.user.name || "Creator",
-          email: result.user.email,
-          avatarUrl: result.user.avatarUrl || undefined
-        });
+      try {
+        const result = await getUserProfile();
+        if (result.success && "user" in result) {
+          setName(result.user.name || "");
+          setEmail(result.user.email);
+          setAvatarUrl(result.user.avatarUrl || null);
+          
+          setAuthUser({
+            id: result.user.id,
+            name: result.user.name || "Creator",
+            email: result.user.email,
+            avatarUrl: result.user.avatarUrl || undefined
+          });
+        }
+      } catch (err) {
+        console.error("Failed to fetch user profile:", err);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
     };
     
     fetchUser();
