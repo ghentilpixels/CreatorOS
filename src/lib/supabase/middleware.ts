@@ -40,9 +40,8 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     const redirectResponse = NextResponse.redirect(url);
-    // Copy cookies to redirect response
-    supabaseResponse.cookies.getAll().forEach(cookie => {
-      redirectResponse.cookies.set(cookie.name, cookie.value, cookie.options || {});
+    supabaseResponse.cookies.getAll().forEach(({ name, value, ...rest }) => {
+      redirectResponse.cookies.set(name, value, rest as any);
     });
     return redirectResponse;
   }
@@ -51,9 +50,8 @@ export async function updateSession(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     const redirectResponse = NextResponse.redirect(url);
-    // Copy cookies to redirect response
-    supabaseResponse.cookies.getAll().forEach(cookie => {
-      redirectResponse.cookies.set(cookie.name, cookie.value, cookie.options || {});
+    supabaseResponse.cookies.getAll().forEach(({ name, value, ...rest }) => {
+      redirectResponse.cookies.set(name, value, rest as any);
     });
     return redirectResponse;
   }
